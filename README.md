@@ -88,25 +88,7 @@ resampling, no volume being mangled in software. You hear the file.
 </td>
 <td valign="top">
 
-**The source says 192/24.**
-
-Music Assistant reports the input — a Tidal FLAC at 192 kHz / 24 bits — and the
-output going to the DX5 at *the same* 192 kHz / 24 bits. Nothing was converted
-between them.
-
-**The hardware agrees.**
-
-That is the half most setups get wrong: the player claims hi-res while something
-underneath quietly resamples. Open the panel below for the kernel's own report of
-the same moment.
-
-</td>
-</tr>
-</table>
-
-<details>
-<summary><b>Proof, not marketing</b> — the kernel's own report while a 192 kHz track plays</summary>
-
+<b>Proof, not marketing</b> — the kernel's own report while a 192 kHz track plays
 ```console
 $ cat /proc/asound/card1/stream0
 Topping DX5 at usb-5200000.usb-1, high speed : USB Audio
@@ -119,6 +101,10 @@ Playback:
     Rates: 44100, 48000, 88200, 96000, 176400, 192000, 352800, 384000, 705600, 768000
     Bits: 32
 ```
+
+</td>
+</tr>
+</table>
 
 `Momentary freq` is the DAC's own clock, measured over the USB feedback endpoint —
 the host is following the DAC, not resampling to meet it. Captured on an **Orange
