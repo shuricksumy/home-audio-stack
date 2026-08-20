@@ -12,6 +12,14 @@
 #                                         where sample-perfect sync across rooms
 #                                         matters more than bit-perfect output.
 #
+# Three of the services are web panels rather than single players: you create
+# and supervise players from a browser instead of adding a service here for each
+# output. With host networking they cannot share a port, so:
+#
+#   http://<host>:8080  squeezelite panel   (wired DACs, bit-perfect)
+#   http://<host>:8081  Snapcast panel      (synced rooms)
+#   http://<host>:8088  Bluetooth panel     (speakers and headphones)
+#
 # Copy .env.example to .env first. Every address below comes from there.
 
 networks:
@@ -44,61 +52,83 @@ services:
     environment:
       - LOG_LEVEL=info
 
-  # ------------------------------------------------- wired DAC, bit-perfect #1
-  # Squeezelite rather than a Snapcast client: this is the path that lets the
-  # DAC switch rates per track instead of everything being resampled to 48 kHz.
-  # PIPEWIRE_NODE comes from `pw-cli ls Node | grep node.name` on the host.
-  squeezelite-dx5:
+  # --------------------------------------------- wired DACs, bit-perfect (panel)
+  # One container, a web panel on http://<host>:8080, and a player per DAC
+  # created from the browser -- no compose entry per output. Squeezelite rather
+  # than a Snapcast client here: this is the path that lets the DAC switch rates
+  # per track instead of everything being resampled to 48 kHz.
+  #
+  # In the panel press "Add player" once per DAC. Each player gets its own
+  # output (from `pw-cli ls Node | grep node.name`) and its own MAC -- two
+  # players sharing a MAC fight over one slot in Music Assistant. The panel
+  # generates a unique one if you leave the field blank.
+  squeezelite-panel:
     image: ghcr.io/shuricksumy/squeezelite-pipewire:latest
-    container_name: squeezelite-dx5
+    container_name: squeezelite-panel
     restart: unless-stopped
-    network_mode: host
-    cap_add: [ SYS_NICE, IPC_LOCK ]          # real-time scheduling for the audio thread
+    network_mode: host                       # SlimProto discovery is broadcast-based
+    cap_add: [ SYS_NICE, IPC_LOCK ]          # real-time scheduling for the audio threads
     ulimits:
       rtprio: 95
       memlock: -1
       msgqueue: 8192000
     group_add: [ audio, video ]              # video: shared-memory access on newer PipeWire
     environment:
-      - PLAYER_NAME=DX5                      # substring of the sink name in `wpctl status`
-      - SERVER_IP=${HOST_IP}                 # Music Assistant's SlimProto server
-      - MAC_ADDR=02:00:00:00:0d:05           # any unique, locally-administered MAC
+      - ROLE=panel                           # the image default; stated for clarity
+      - PORT=8080                            # host networking: must differ per panel
+      - SERVER_IP=${HOST_IP}                 # seeds the Add-player form (MA's SlimProto server)
+      - SERVER_PORT=3483
+      - ADMIN_USER=admin                     # remove both to leave the panel open on a LAN
+      - ADMIN_PASSWORD=${PANEL_PASSWORD}
       - PIPEWIRE_RUNTIME_DIR=/tmp
       - PIPEWIRE_REMOTE=pipewire-0
-      - PIPEWIRE_NODE=alsa_output.usb-Topping_DX5-00.analog-stereo
-      # -a buffer:count:format:mmap  -b stream:output  -C idle-close  -U mixer
-      - SQUEEZE_EXTRA=-a 16384:8:24:0 -b 8000:12000 -C 5 -U Master
     volumes:
+      # players.json lives here, so the players survive a restart. Create it
+      # first or Docker makes it root-owned and the panel cannot write:
+      #     mkdir -p data/squeezelite-panel && sudo chown -R ${PUID}:${PUID} data/squeezelite-panel
+      - ./data/squeezelite-panel:/config
       - /run/user/${PUID}/pipewire-0:/tmp/pipewire-0
       - /dev/shm:/dev/shm                    # PipeWire's shared-memory transport
-      - /dev/snd:/dev/snd                    # optional ALSA fallback
+    devices:
+      # Only for players using the direct-ALSA output. It has to be `devices:`,
+      # not a volume -- a volume maps the nodes but the device cgroup still
+      # refuses to open them, and squeezelite reports "No such device".
+      - /dev/snd:/dev/snd
 
-  # ------------------------------------------------- wired DAC, bit-perfect #2
-  # Same again for a second DAC. Note the different format in -a (32 vs 24) and
-  # its own MAC -- two players sharing a MAC will fight over one slot in MA.
-  squeezelite-dx3:
-    image: ghcr.io/shuricksumy/squeezelite-pipewire:latest
-    container_name: squeezelite-dx3
+  # ------------------------------------------------ synced rooms (Snapcast panel)
+  # The same idea for Snapcast: one container, a panel, a supervised snapclient
+  # per output. Use this for rooms where staying in sync matters more than
+  # bit-perfect output -- and give it outputs the squeezelite panel above is not
+  # already using. One player per device; see examples/README.md.
+  snapcast-panel:
+    image: ghcr.io/shuricksumy/snapcast-pipewire:latest
+    container_name: snapcast-panel
     restart: unless-stopped
     network_mode: host
     cap_add: [ SYS_NICE, IPC_LOCK ]
     ulimits:
-      rtprio: 99
+      rtprio: 95
       memlock: -1
       msgqueue: 8192000
     group_add: [ audio, video ]
     environment:
-      - PLAYER_NAME=DX3 Pro
-      - SERVER_IP=${HOST_IP}
-      - MAC_ADDR=02:00:00:00:0d:03
+      - ROLE=panel
+      - PORT=8081                            # 8080 is taken by the panel above
+      - SERVER_IP=${HOST_IP}                 # MA's built-in Snapserver
+      - SNAP_PORT=1704                       # stream port
+      - SNAP_CONTROL_PORT=1705               # JSON-RPC: now playing, transport, volume
+      - SNAP_WEB_PORT=1780                   # Snapweb, for the link on each row
+      - ADMIN_USER=admin
+      - ADMIN_PASSWORD=${PANEL_PASSWORD}
       - PIPEWIRE_RUNTIME_DIR=/tmp
       - PIPEWIRE_REMOTE=pipewire-0
-      - PIPEWIRE_NODE=alsa_output.usb-Topping_DX3_Pro-00.analog-stereo
-      - SQUEEZE_EXTRA=-a 16384:8:32:0 -b 8000:12000 -C 5 -U Master
+      - PIPEWIRE_LATENCY=2048/192000         # default for new players
     volumes:
+      - ./data/snapcast-panel:/config
       - /run/user/${PUID}/pipewire-0:/tmp/pipewire-0
       - /dev/shm:/dev/shm
-      - /run/dbus:/run/dbus
+    devices:
+      - /dev/snd:/dev/snd
 
   # ------------------------------------------------------- Bluetooth speakers
   # Pair from http://<host>:8088 and each speaker becomes a Snapcast player,

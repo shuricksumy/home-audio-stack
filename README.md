@@ -48,6 +48,7 @@ That is what this is.
 | :-- | :-- |
 | 🎛️ **One app for everything** | [Music Assistant](https://www.music-assistant.io/) is the brain: your own library plus Spotify, Plex, radio and more, all in one interface, inside Home Assistant. |
 | 🏠 **Every room in sync** | Press play once and the kitchen, living room and bathroom stay together — no echo walking between rooms. |
+| 🖱️ **Set it up in a browser** | Every player — wired DAC, synced room or Bluetooth speaker — is created, started and edited on a web page. No compose edit, no SSH, no restart to add a room. |
 | 🎧 **Real Hi-Fi, not "good enough"** | Audio reaches your DAC untouched, at the track's own quality. A 96 kHz/24-bit file plays as 96 kHz/24-bit. |
 | 🔊 **Use the speakers you own** | Bluetooth speakers and headphones join as rooms, pair from a web page, several at once. |
 | 💡 **Lights that dance** | LED strips react to whatever is playing. |
@@ -62,18 +63,27 @@ they work better together.
 ### 🔈 Multiroom — [pipewire-snapclient](https://github.com/shuricksumy/pipewire-snapclient)
 
 **What it is:** turns any Linux box with a sound output into a synchronised
-speaker for the whole system.
+speaker for the whole system — with a web panel that creates and supervises the
+players for you.
 
 **Why you want it:** this is what makes multiroom *multiroom*. Every player gets
 the same audio on the same clock, so five rooms sound like one. Walk from the
-kitchen to the hall and the song follows you without a stutter or an echo. Add a
-room by starting one more container.
+kitchen to the hall and the song follows you without a stutter or an echo.
+Adding a room is a button, not a compose edit: pick the output, name it, press
+start. Each row then shows what is playing, with volume and transport, and
+restarts itself if the output disappears.
+
+<p align="center">
+  <img src="docs/snapclient-panel.png" width="88%" alt="The Snapcast panel: four players with their outputs, what is playing, volume sliders, transport controls, state and uptime">
+  <br><sub>Four rooms from one container — a USB DAC, two Bluetooth speakers and a direct
+  ALSA card. The stopped one is a speaker that is currently switched off.</sub>
+</p>
 
 ### 🎯 Bit-perfect playback — [pipewire-squeezelite](https://github.com/shuricksumy/pipewire-squeezelite)
 
-**What it is:** a player that hands audio to your DAC exactly as it was recorded.
-Music Assistant drives it directly through its Squeezelite provider, so it shows
-up as just another room.
+**What it is:** a player that hands audio to your DAC exactly as it was recorded,
+with a web panel of its own. Music Assistant drives it directly through its
+Squeezelite provider, so it shows up as just another room.
 
 **Why you want it:** cheap setups quietly convert everything to one format —
 usually 48 kHz — which is why an expensive DAC can sound ordinary. This does not.
@@ -114,7 +124,12 @@ Playback:
 the host is following the DAC, not resampling to meet it. Captured on an **Orange
 Pi Zero 2W**, so none of this needs a powerful machine.
 
-</details>
+<p align="center">
+  <img src="docs/squeezelite-panel.png" width="88%" alt="The Squeezelite panel in dark mode: three players with their outputs, server, state, uptime and per-player actions">
+  <br><sub>Three DACs, two driven by Music Assistant and one addressed straight through ALSA.
+  Behind <b>Edit</b>: sample format, buffers, DSD and the mixer control — a form instead of a
+  wall of command-line flags.</sub>
+</p>
 
 ### 🔊 Bluetooth speakers — [bluetooth-web-snapclient](https://github.com/shuricksumy/bluetooth-web-snapclient)
 
@@ -231,14 +246,17 @@ Pick your starting point:
 **A complete, working compose file** — Music Assistant, two bit-perfect DACs,
 Bluetooth speakers and the LED strips — is in
 **[`examples/`](examples/)**, along with what each part is for and the
-two things that will bite you.
+three things that will bite you.
 
 ```bash
 git clone https://github.com/shuricksumy/home-audio-stack
 cd home-audio-stack/examples
-cp .env.example .env      # set HOST_IP, PUID and a password
+cp .env.example .env      # set HOST_IP, PUID and the passwords
 docker compose up -d
 ```
+
+Then add your rooms in the browser — `:8080` for wired DACs, `:8081` for synced
+rooms, `:8088` for Bluetooth speakers — and they appear in Music Assistant.
 
 ## 💡 Things worth knowing before you start
 
