@@ -13,6 +13,11 @@
   <a href="#-getting-started">Get started</a>
 </p>
 
+<p align="center">
+  <img src="docs/music-assistant.png" width="94%" alt="Music Assistant with every room as a player: a USB DAC, a Bluetooth speaker, a second DAC, the TV and the LED strips">
+  <br><sub>One app, every room — a USB DAC, a Bluetooth speaker, a second DAC, the TV, and the LED strips.<br>All of them built from the projects below.</sub>
+</p>
+
 ---
 
 ## 🤔 The problem
@@ -98,6 +103,11 @@ reconnects by itself.
 **Why you want it:** the room becomes the party. The lights follow the beat of
 whatever is playing anywhere in the house — no microphone, no sound card, no
 wiring tricks on the host.
+
+<p align="center">
+  <img src="docs/ledfx.png" width="88%" alt="LedFx driving five WLED devices with live effect previews">
+  <br><sub>Five strips, each with its own effect, all following the same music.</sub>
+</p>
 
 ### 🏠 In Home Assistant — [home-assistant-apps](https://github.com/shuricksumy/home-assistant-apps)
 
