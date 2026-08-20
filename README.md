@@ -156,7 +156,7 @@ to as many viewers as you like — with the effect and palette controls, and the
 device's own web UI, embedded in the card.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/shuricksumy/wled-gateway-addon/main/wled_gateway/screenshots/matrix-card.png" width="42%" alt="A Lovelace card for a 512-LED matrix: live dot-matrix preview with effect and palette controls">
+  <img src="https://raw.githubusercontent.com/shuricksumy/wled-gateway-addon/main/wled_gateway/screenshots/matrix-card.png" width="25%" alt="A Lovelace card for a 512-LED matrix: live dot-matrix preview with effect and palette controls">
   <br><sub>A live preview in Lovelace — <a href="https://github.com/shuricksumy/wled-gateway-addon">see it animating</a>.</sub>
 </p>
 
