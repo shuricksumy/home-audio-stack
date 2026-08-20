@@ -81,6 +81,28 @@ A 44.1 kHz CD rip plays at 44.1 kHz, a 96 kHz/24-bit album plays at 96 kHz/24-bi
 and the DAC switches by itself, track to track, up to 384 kHz and DSD. No
 resampling, no volume being mangled in software. You hear the file.
 
+<details>
+<summary><b>Proof, not marketing</b> — the kernel's own report while a 192 kHz track plays</summary>
+
+```console
+$ cat /proc/asound/card1/stream0
+Topping DX5 at usb-5200000.usb-1, high speed : USB Audio
+
+Playback:
+  Status: Running
+    Momentary freq = 191998 Hz (0x17.fff0)
+  Interface 1
+    Format: S32_LE
+    Rates: 44100, 48000, 88200, 96000, 176400, 192000, 352800, 384000, 705600, 768000
+    Bits: 32
+```
+
+`Momentary freq` is the DAC's own clock, measured over the USB feedback endpoint —
+the host is following the DAC, not resampling to meet it. Captured on an **Orange
+Pi Zero 2W**, so none of this needs a powerful machine.
+
+</details>
+
 ### 🔊 Bluetooth speakers — [bluetooth-web-snapclient](https://github.com/shuricksumy/bluetooth-web-snapclient)
 
 **What it is:** a web page to pair Bluetooth speakers and turn them into players.
