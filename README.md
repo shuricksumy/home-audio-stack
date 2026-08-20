@@ -83,23 +83,27 @@ resampling, no volume being mangled in software. You hear the file.
 
 <table>
 <tr>
-<td width="42%" valign="top">
-  <img src="docs/bitperfect-192.png" alt="Music Assistant showing input Tidal FLAC 192 kHz / 24 bits and output 192 kHz / 24 bits to the DX5">
+<td width="52%" valign="top">
+  <img src="docs/bitperfect-192.png" width="100%" alt="Music Assistant showing input Tidal FLAC 192 kHz / 24 bits and output 192 kHz / 24 bits to the DX5">
 </td>
 <td valign="top">
 
-<b>Proof, not marketing</b> — the kernel's own report while a 192 kHz track plays
+<b>Proof, not marketing</b> — the kernel's own report of the same moment:
+
 ```console
 $ cat /proc/asound/card1/stream0
-Topping DX5 at usb-5200000.usb-1, high speed : USB Audio
+Topping DX5, high speed : USB Audio
 
 Playback:
   Status: Running
-    Momentary freq = 191998 Hz (0x17.fff0)
+    Momentary freq = 191998 Hz
   Interface 1
     Format: S32_LE
-    Rates: 44100, 48000, 88200, 96000, 176400, 192000, 352800, 384000, 705600, 768000
     Bits: 32
+    Rates: 44100, 48000, 88200,
+      96000, 176400, 192000,
+      352800, 384000,
+      705600, 768000
 ```
 
 </td>
