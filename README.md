@@ -109,6 +109,22 @@ wiring tricks on the host.
   <br><sub>Five strips, each with its own effect, all following the same music.</sub>
 </p>
 
+### 🖥️ The lights on your dashboard — [wled-gateway-addon](https://github.com/shuricksumy/wled-gateway-addon)
+
+**What it is:** a Home Assistant add-on that shows what your WLED strips are
+doing, live, on every dashboard at once.
+
+**Why you want it:** WLED only allows a couple of live-preview connections
+before it starts refusing them, so a second phone opening the dashboard kills
+the first one's preview. This holds **one** connection per device and fans it out
+to as many viewers as you like — with the effect and palette controls, and the
+device's own web UI, embedded in the card.
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/shuricksumy/wled-gateway-addon/main/wled_gateway/screenshots/matrix-card.png" width="42%" alt="A Lovelace card for a 512-LED matrix: live dot-matrix preview with effect and palette controls">
+  <br><sub>A live preview in Lovelace — <a href="https://github.com/shuricksumy/wled-gateway-addon">see it animating</a>.</sub>
+</p>
+
 ### 🏠 In Home Assistant — [home-assistant-apps](https://github.com/shuricksumy/home-assistant-apps)
 
 **What it is:** add-ons that put these tools into your Home Assistant sidebar,
@@ -131,10 +147,12 @@ flowchart LR
     subgraph control["🕹️ Control it however you like"]
         HA["<b>home-assistant-apps</b><br/>everything in the HA sidebar"]
         MCP["<b>MCP-MusicAssistant</b><br/>ask for music in plain words"]
+        WG["<b>wled-gateway-addon</b><br/>live LED previews on every dashboard"]
     end
 
     HA -.-> MA
     MCP -.-> MA
+    WG -.-> D3
 
     MA["🎵 <b>Music Assistant</b><br/>your library · Spotify · Plex · radio"]
 
@@ -173,6 +191,7 @@ Pick your starting point:
 | get the absolute best quality out of my DAC | [pipewire-squeezelite](https://github.com/shuricksumy/pipewire-squeezelite) |
 | make the lights dance | [ledfx-snapcast-docker](https://github.com/shuricksumy/ledfx-snapcast-docker) |
 | see it all inside Home Assistant | [home-assistant-apps](https://github.com/shuricksumy/home-assistant-apps) |
+| watch my LED strips live on a dashboard | [wled-gateway-addon](https://github.com/shuricksumy/wled-gateway-addon) |
 
 **A complete, working compose file** — Music Assistant, two bit-perfect DACs,
 Bluetooth speakers and the LED strips — is in
