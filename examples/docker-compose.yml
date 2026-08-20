@@ -66,7 +66,10 @@ services:
     image: ghcr.io/shuricksumy/squeezelite-pipewire:latest
     container_name: squeezelite-panel
     restart: unless-stopped
-    network_mode: host                       # SlimProto discovery is broadcast-based
+    # network_mode: host                       # SlimProto discovery is broadcast-based
+    # NOT network_mode: host -- see the warning in the Web panel section above
+    ports:
+      - "8082:8080"
     cap_add: [ SYS_NICE, IPC_LOCK ]          # real-time scheduling for the audio threads
     ulimits:
       rtprio: 95
