@@ -242,6 +242,17 @@ docker compose up -d
 
 ## 💡 Things worth knowing before you start
 
+- **One player per output device.** This is the rule that saves the most
+  head-scratching. A DAC or a speaker should be driven by exactly one player —
+  Squeezelite *or* Snapcast, not both, and never the same sink from two
+  containers. Two players on one output do not take turns: you get distorted
+  audio, silence, or one of them failing to open the device, and nothing in
+  either log says why. Pick the transport that suits the device
+  ([which one?](#-the-parts)) and leave the other alone.
+- **Mixing transports across the house is fine — mixing them on one device is
+  not.** A Squeezelite DAC in the study and Snapcast rooms everywhere else is
+  the normal arrangement; both are Music Assistant players and appear in the
+  same list. The line you should not cross is one *device* being claimed twice.
 - **Bluetooth speakers arrive slightly late.** Bluetooth itself adds about a
   quarter of a second. If a Bluetooth room plays alongside a wired one, set a
   negative latency offset for it, and tune by ear until they line up.

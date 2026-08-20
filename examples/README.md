@@ -61,7 +61,14 @@ id -u
 apart; two players sharing one will fight over a single slot. The values here
 start with `02:`, which marks them locally administered — safe to invent.
 
-## Two things that will bite you
+## Three things that will bite you
+
+**One player per output device.** Each service above owns exactly one sink, and
+that is deliberate. If you copy a block to add a room, change `PIPEWIRE_NODE` as
+well as the name — two players pointed at the same device do not share it, they
+fight over it, and the symptom is distorted or silent audio with nothing useful
+in either log.
+
 
 **On Ubuntu, keep `security_opt: [apparmor=unconfined]` on `bluetooth-web`.**
 Docker's default AppArmor profile grants no D-Bus rules, so the container is
