@@ -84,7 +84,7 @@ resampling, no volume being mangled in software. You hear the file.
 <table>
 <tr>
 <td width="52%" valign="top">
-  <img src="docs/bitperfect-192.png" width="100%" alt="Music Assistant showing input Tidal FLAC 192 kHz / 24 bits and output 192 kHz / 24 bits to the DX5">
+  <img src="docs/bitperfect-192.png" width="55%" alt="Music Assistant showing input Tidal FLAC 192 kHz / 24 bits and output 192 kHz / 24 bits to the DX5">
 </td>
 <td valign="top">
 
