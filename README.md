@@ -81,6 +81,29 @@ A 44.1 kHz CD rip plays at 44.1 kHz, a 96 kHz/24-bit album plays at 96 kHz/24-bi
 and the DAC switches by itself, track to track, up to 384 kHz and DSD. No
 resampling, no volume being mangled in software. You hear the file.
 
+<table>
+<tr>
+<td width="42%" valign="top">
+  <img src="docs/bitperfect-192.png" alt="Music Assistant showing input Tidal FLAC 192 kHz / 24 bits and output 192 kHz / 24 bits to the DX5">
+</td>
+<td valign="top">
+
+**The source says 192/24.**
+
+Music Assistant reports the input — a Tidal FLAC at 192 kHz / 24 bits — and the
+output going to the DX5 at *the same* 192 kHz / 24 bits. Nothing was converted
+between them.
+
+**The hardware agrees.**
+
+That is the half most setups get wrong: the player claims hi-res while something
+underneath quietly resamples. Open the panel below for the kernel's own report of
+the same moment.
+
+</td>
+</tr>
+</table>
+
 <details>
 <summary><b>Proof, not marketing</b> — the kernel's own report while a 192 kHz track plays</summary>
 
