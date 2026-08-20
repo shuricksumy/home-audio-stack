@@ -67,6 +67,8 @@ room by starting one more container.
 ### 🎯 Bit-perfect playback — [pipewire-squeezelite](https://github.com/shuricksumy/pipewire-squeezelite)
 
 **What it is:** a player that hands audio to your DAC exactly as it was recorded.
+Music Assistant drives it directly through its Squeezelite provider, so it shows
+up as just another room.
 
 **Why you want it:** cheap setups quietly convert everything to one format —
 usually 48 kHz — which is why an expensive DAC can sound ordinary. This does not.
@@ -116,28 +118,32 @@ living room when I get there" — in a sentence, not five clicks.
 
 ```mermaid
 flowchart LR
-    subgraph brain["🎵 One place to press play"]
-        MA["<b>Music Assistant</b><br/>your library · Spotify · Plex · radio"]
+    subgraph control["🕹️ Control it however you like"]
+        HA["<b>home-assistant-apps</b><br/>everything in the HA sidebar"]
+        MCP["<b>MCP-MusicAssistant</b><br/>ask for music in plain words"]
     end
 
-    MA -- "same audio,<br/>same clock" --> C1
-    MA --> C2
-    MA --> C3
+    HA -.-> MA
+    MCP -.-> MA
 
-    subgraph rooms["🏠 Rooms"]
-        C1["<b>pipewire-snapclient</b><br/>wired rooms"]
-        C2["<b>bluetooth-web-snapclient</b><br/>Bluetooth rooms"]
-        C3["<b>ledfx-snapcast-docker</b><br/>the light show"]
+    MA["🎵 <b>Music Assistant</b><br/>your library · Spotify · Plex · radio"]
+
+    MA -- "Snapcast" --> C1
+    MA -- "Snapcast" --> C2
+    MA -- "Snapcast" --> C3
+    MA -- "Squeezelite" --> C4
+
+    subgraph rooms["🏠 One player per room"]
+        C1["<b>pipewire-snapclient</b>"]
+        C2["<b>bluetooth-web-snapclient</b>"]
+        C3["<b>ledfx-snapcast-docker</b>"]
+        C4["<b>pipewire-squeezelite</b>"]
     end
 
-    C1 --> DAC["🎛️ USB DAC<br/><i>bit-perfect</i>"]
-    C2 --> BT["🔊 JBL · headphones<br/><i>several at once</i>"]
-    C3 --> LED["💡 WLED strips"]
-
-    LMS["<b>pipewire-squeezelite</b><br/>for Lyrion/LMS libraries"] --> DAC
-
-    HA["🏠 <b>home-assistant-apps</b><br/>all of it in one sidebar"] -. shows .-> C2
-    ASK["🗣️ <b>MCP-MusicAssistant</b><br/>ask in plain words"] -. controls .-> MA
+    C1 --> D1["🎛️ USB DAC<br/><i>Topping DX5</i>"]
+    C2 --> D2["🔊 Bluetooth speakers<br/><i>JBL · headphones</i>"]
+    C3 --> D3["💡 WLED strips"]
+    C4 --> D4["🎛️ USB DAC<br/><i>Topping DX3 · bit-perfect</i>"]
 
     style C2 stroke-width:3px
 ```
