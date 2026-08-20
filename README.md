@@ -174,56 +174,17 @@ Pick your starting point:
 | make the lights dance | [ledfx-snapcast-docker](https://github.com/shuricksumy/ledfx-snapcast-docker) |
 | see it all inside Home Assistant | [home-assistant-apps](https://github.com/shuricksumy/home-assistant-apps) |
 
-<details>
-<summary><b>A working example: two rooms on one host</b> (click to expand)</summary>
+**A complete, working compose file** — Music Assistant, two bit-perfect DACs,
+Bluetooth speakers and the LED strips — is in
+**[`examples/`](examples/)**, along with what each part is for and the
+two things that will bite you.
 
-```yaml
-services:
-  # The brain. Its built-in Snapserver listens on 1704 (audio),
-  # 1705 (control) and 1780 (Snapweb).
-  music-assistant-server:
-    image: ghcr.io/music-assistant/server:latest
-    network_mode: host
-    volumes: [ ./ma-data:/data ]
-    restart: unless-stopped
-
-  # A wired room: straight into the host's PipeWire session.
-  snapclient-dx3:
-    image: ghcr.io/shuricksumy/snapcast-pipewire:latest
-    network_mode: host
-    environment:
-      - ROLE=snapclient
-      - SERVER_IP=192.168.1.50
-      - CLIENT_ID=Living Room
-      - PIPEWIRE_NODE=alsa_output.usb-Topping_DX3_Pro-00.analog-stereo
-      - USE_ALSA=true
-    volumes:
-      - /run/user/1000/pipewire-0:/tmp/pipewire-0
-      - /dev/shm:/dev/shm
-    restart: unless-stopped
-
-  # Bluetooth rooms: pair from the browser at http://<host>:8088
-  bluetooth-web:
-    image: ghcr.io/shuricksumy/bluetooth-web-snapclient:latest
-    ports: [ "8088:8080" ]
-    security_opt: [ apparmor=unconfined ]   # Ubuntu hosts only
-    volumes:
-      - /run/dbus/system_bus_socket:/run/dbus/system_bus_socket
-      - /run/user/1000/pipewire-0:/tmp/pipewire-0
-      - /dev/shm:/dev/shm
-      - ./bluetooth-web-config:/config
-    environment:
-      - SNAPSERVER_HOST=192.168.1.50
-      - ADMIN_PASSWORD=changeme
-    restart: unless-stopped
+```bash
+git clone https://github.com/shuricksumy/home-audio-stack
+cd home-audio-stack/examples
+cp .env.example .env      # set HOST_IP, PUID and a password
+docker compose up -d
 ```
-
-The host must be a working PipeWire machine first — every player attaches to the
-host's audio session instead of running its own.
-[The host setup](https://github.com/shuricksumy/pipewire-snapclient#-host-setup-preparation)
-is written once and applies to all of them.
-
-</details>
 
 ## 💡 Things worth knowing before you start
 

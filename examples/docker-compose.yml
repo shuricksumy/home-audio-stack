@@ -1,0 +1,171 @@
+# The whole house in one file.
+#
+# Music Assistant is the brain; everything else is a room. Two different
+# transports are in play, which is worth understanding before you edit anything:
+#
+#   Squeezelite (SlimProto, port 3483) -- MA's Squeezelite provider drives these.
+#                                         Used for the wired USB DACs, because it
+#                                         gives bit-perfect output with the DAC
+#                                         following the track's own rate.
+#   Snapcast    (port 1704)            -- MA's Snapcast provider drives these.
+#                                         Used for Bluetooth speakers and LedFx,
+#                                         where sample-perfect sync across rooms
+#                                         matters more than bit-perfect output.
+#
+# Copy .env.example to .env first. Every address below comes from there.
+
+networks:
+  default:
+    driver: bridge
+  npm_proxy:
+    name: npm_proxy
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.112.0.0/24
+
+services:
+
+  # ---------------------------------------------------------------- the brain
+  # Host networking is not optional here: MA's built-in Snapserver hands out a
+  # port per player in the 4953-5153 range, and mDNS discovery needs the LAN.
+  music-assistant-server:
+    image: ghcr.io/music-assistant/server:latest
+    container_name: music-assistant-server
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - ./data/music-assistant-server:/data
+    cap_add:
+      - SYS_ADMIN          # for mounting network shares (SMB/NFS music libraries)
+      - DAC_READ_SEARCH
+    security_opt:
+      - apparmor:unconfined
+    environment:
+      - LOG_LEVEL=info
+
+  # ------------------------------------------------- wired DAC, bit-perfect #1
+  # Squeezelite rather than a Snapcast client: this is the path that lets the
+  # DAC switch rates per track instead of everything being resampled to 48 kHz.
+  # PIPEWIRE_NODE comes from `pw-cli ls Node | grep node.name` on the host.
+  squeezelite-dx5:
+    image: ghcr.io/shuricksumy/squeezelite-pipewire:latest
+    container_name: squeezelite-dx5
+    restart: unless-stopped
+    network_mode: host
+    cap_add: [ SYS_NICE, IPC_LOCK ]          # real-time scheduling for the audio thread
+    ulimits:
+      rtprio: 95
+      memlock: -1
+      msgqueue: 8192000
+    group_add: [ audio, video ]              # video: shared-memory access on newer PipeWire
+    environment:
+      - PLAYER_NAME=DX5                      # substring of the sink name in `wpctl status`
+      - SERVER_IP=${HOST_IP}                 # Music Assistant's SlimProto server
+      - MAC_ADDR=02:00:00:00:0d:05           # any unique, locally-administered MAC
+      - PIPEWIRE_RUNTIME_DIR=/tmp
+      - PIPEWIRE_REMOTE=pipewire-0
+      - PIPEWIRE_NODE=alsa_output.usb-Topping_DX5-00.analog-stereo
+      # -a buffer:count:format:mmap  -b stream:output  -C idle-close  -U mixer
+      - SQUEEZE_EXTRA=-a 16384:8:24:0 -b 8000:12000 -C 5 -U Master
+    volumes:
+      - /run/user/${PUID}/pipewire-0:/tmp/pipewire-0
+      - /dev/shm:/dev/shm                    # PipeWire's shared-memory transport
+      - /dev/snd:/dev/snd                    # optional ALSA fallback
+
+  # ------------------------------------------------- wired DAC, bit-perfect #2
+  # Same again for a second DAC. Note the different format in -a (32 vs 24) and
+  # its own MAC -- two players sharing a MAC will fight over one slot in MA.
+  squeezelite-dx3:
+    image: ghcr.io/shuricksumy/squeezelite-pipewire:latest
+    container_name: squeezelite-dx3
+    restart: unless-stopped
+    network_mode: host
+    cap_add: [ SYS_NICE, IPC_LOCK ]
+    ulimits:
+      rtprio: 99
+      memlock: -1
+      msgqueue: 8192000
+    group_add: [ audio, video ]
+    environment:
+      - PLAYER_NAME=DX3 Pro
+      - SERVER_IP=${HOST_IP}
+      - MAC_ADDR=02:00:00:00:0d:03
+      - PIPEWIRE_RUNTIME_DIR=/tmp
+      - PIPEWIRE_REMOTE=pipewire-0
+      - PIPEWIRE_NODE=alsa_output.usb-Topping_DX3_Pro-00.analog-stereo
+      - SQUEEZE_EXTRA=-a 16384:8:32:0 -b 8000:12000 -C 5 -U Master
+    volumes:
+      - /run/user/${PUID}/pipewire-0:/tmp/pipewire-0
+      - /dev/shm:/dev/shm
+      - /run/dbus:/run/dbus
+
+  # ------------------------------------------------------- Bluetooth speakers
+  # Pair from http://<host>:8088 and each speaker becomes a Snapcast player,
+  # supervised inside this one container. No compose entry per speaker.
+  bluetooth-web:
+    image: ghcr.io/shuricksumy/bluetooth-web-snapclient:latest
+    container_name: bluetooth-web
+    restart: unless-stopped
+    ports:
+      - "8088:8080"
+    security_opt:
+      - apparmor=unconfined                  # Ubuntu: see the note at the bottom
+    environment:
+      - SNAPSERVER_HOST=${HOST_IP}
+      - ADMIN_PASSWORD=${BT_ADMIN_PASSWORD}
+    volumes:
+      # Bluetooth needs only this one. Read-write: D-Bus is bidirectional and
+      # :ro breaks the connection.
+      - /run/dbus/system_bus_socket:/run/dbus/system_bus_socket
+      # The three below are for the Snapcast players. Drop them if you only
+      # want to pair devices.
+      - /run/user/${PUID}/pipewire-0:/tmp/pipewire-0
+      - /dev/shm:/dev/shm
+      - ./data/bluetooth-web-config:/config  # keeps players.json across updates
+
+  # ---------------------------------------------------------- the light show
+  # ROLE=ledfx-suite runs LedFx with both a Snapcast client and a Squeezelite
+  # player feeding it, so the strips react whichever transport is playing.
+  ledfx:
+    image: ghcr.io/shuricksumy/ledfx-snapcast-docker:latest
+    container_name: ledfx-pipe
+    restart: unless-stopped
+    networks:
+      npm_proxy:
+        ipv4_address: ${IP_LEDFX}
+    ports:
+      - "8889:8888"                          # LedFx web UI
+    user: "${PUID}:${PUID}"
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      - ROLE=ledfx-suite
+      # Snapcast side
+      - SNAP_HOST=${HOST_IP}
+      - SNAP_CLIENT_ID=Snap-LedFx
+      - SNAPCLIENT_LEDFX_ENABLED=true
+      # Squeezelite side
+      - SQUEEZELITE_NAME=Squeez-LedFx
+      - SQUEEZELITE_SERVER_PORT=${HOST_IP}:3483
+      - SQUEEZELITE_MAC=02:00:00:00:1e:d0
+      - SQUEEZELITE_EXTRA_ARGS=-W
+      - SQUEEZELITE_LEDFX_ENABLED=true
+      - STARTUP_DELAY_SEC=5                  # let PulseAudio settle before players start
+      - PULSE_LATENCY_MSEC=10
+    volumes:
+      - ./data/ledfx:/home/ledfx/.ledfx
+
+  # ------------------------------------------------------- optional: DLNA/UPnP
+  # Not part of this stack, but it is what makes the setup visible to phones and
+  # TVs that only speak UPnP.
+  bubbleupnpserver:
+    image: bubblesoftapps/bubbleupnpserver:latest
+    container_name: bubbleupnpserver
+    restart: unless-stopped
+    network_mode: host
+    devices:
+      - /dev/dri:/dev/dri                    # hardware transcoding
+    volumes:
+      - ./data/bubble:/data
+    command: [ -dataDir, /data ]
