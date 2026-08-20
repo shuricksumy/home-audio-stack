@@ -91,12 +91,7 @@ A 44.1 kHz CD rip plays at 44.1 kHz, a 96 kHz/24-bit album plays at 96 kHz/24-bi
 and the DAC switches by itself, track to track, up to 384 kHz and DSD. No
 resampling, no volume being mangled in software. You hear the file.
 
-<table>
-<tr>
-<td width="52%" valign="top">
-  <img src="docs/bitperfect-192.png" width="55%" alt="Music Assistant showing input Tidal FLAC 192 kHz / 24 bits and output 192 kHz / 24 bits to the DX5">
-</td>
-<td valign="top">
+<img align="left" width="30%" src="docs/bitperfect-192.png" alt="Music Assistant showing input Tidal FLAC 192 kHz / 24 bits and output 192 kHz / 24 bits to the DX5">
 
 <b>Proof, not marketing</b> — the kernel's own report of the same moment:
 
@@ -116,9 +111,8 @@ Playback:
       705600, 768000
 ```
 
-</td>
-</tr>
-</table>
+<br clear="left"/>
+
 
 `Momentary freq` is the DAC's own clock, measured over the USB feedback endpoint —
 the host is following the DAC, not resampling to meet it. Captured on an **Orange
